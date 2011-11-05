@@ -1,0 +1,118 @@
+v0.006:
+    Added TARGA support
+        Pros:
+            You can shove your textures in a file now.
+        Cons:
+            Some features not totally implemented
+    
+    Can pass a dictionary as input to a texture
+        Pros:
+            You can do it!
+    
+    Rendering more algebraically correct
+        Pros:
+            More correct
+        Cons:
+            Feels backwards if you're dyslexic
+    
+    Added iterY and iterX arguments to Texture.render()
+        Pros:
+            Allows fuller user control over what threads render what samples
+        What this means:
+            You can use iterX and iterY to control what iterators are used to calculate which samples each thread is trying to
+                render. This means that if you're completely braindead you can have multiple threads render the same sample.
+    
+    Stopped using iterators for sample positions
+        Pros:
+            Better precison
+            Smaller code
+        What this means:
+            I used to use a count iterator to find the next sample's Y position, this would result in numbers like 0.999...8
+                when it should be 1.00, this problem was fixed by using multiplication instead of count iterators
+    
+    Added thread and altch arguments to Texture.render(), added Texture.getBuffer()
+        Pros:
+            Allows the user to take advantage of multiple cores on a machine
+        What this means:
+            In order to render textures for multiple cores, the multiprocessing module must be called from the top level
+                script, which means that this module can't do anything related to multiple cores. However, to make it easier
+                to do this you can use the thread argument to provide a tuple/list containing the current thread and total threads
+                (ex: (0, 4)), and altch to provide a dictionary of references to a multiprocessing.Array of unsigned bytes
+                ex:
+                    import copy, multiprocessing
+                    ba = bytearray.fromhex("00000000")
+                    Texture.render(Random, crap, here, doo, dee, doo, threads=(0, 4),
+                                   altch={"R":multiprocessing.Array("B", ba), "G":multiprocessing.Array("B", ba),
+                                        "B":multiprocessing.Array("B", ba)})
+                Note that the dictionary shouldn't be a reference, the arrays should, and that the arrays must already be full
+                    (since they can't be resized).
+            Since the color channels aren't stored in the class, you have to access the alternate channels to get it.
+            YOU ALSO CANNOT CHANGE THE SIZE/DIMENSIONS BETWEEN PROCESSES I don't know what kind of imbecile would try, but
+                whatever, it's there.
+            There will be problems on Windows: since it doesn't have os.fork() this means the processes can't run a method and
+                since Texture.render() is a method, problems arise. Long story short Windows is like the Budweiser of OSes, it's
+                fine as long as you don't expect anything from it.
+    
+    Notable Notes:
+        Dox for some stuff
+        Cleaned up code quite a bit - made it shorter, more concise
+        Slightly more PEP 8 compliant
+        Added a few docstrings
+        Was horribly idiotic with making optional sizes/dimensions through Texture.render(), it should always work now and be as
+            accurate as using default values
+        Lots of small stuff
+
+v0.0051:
+    Dimensions and sizes can be called through Texture.render()
+        Pros:
+            The same texture can be rendered at whatever size/dimensions you feel at the moment
+        What this means:
+            You don't have to rebuild the texture to render a different part of it and/or at a different size
+            It's entirely optional, so you still have to initialize the texture with default size/dimensions
+    Notable Notes:
+        Last version (0.005) had a showstopper that I should have caught, but didn't for some reason - it has been fixed
+    
+v0.005:
+    Changed the way strokes are called
+        Pros:
+            Allows any stroke to run _ANY_ other (unless you like infinite loops) stroke no matter where it is
+            Should be a little more efficient
+            ?????
+            Profit
+        What this means:
+            Each stroke can have a key in their settings that points to a different stroke that is called
+            You can supply a color dictionary to input instead of having to call a Number/etc. stroke to set a background color
+            Brushes can have multiple inputs if they so choose
+    
+    Put colorspace in info (where it should be)
+        Pros:
+            Calling strokes is easier and less complicated
+        What this means:
+            Colorspace used to be an argument passed to each stroke - by moving it into the info class, there are less arguments
+                that need to be passed
+            Making strokeA call strokeB with a different colorspace than the one passed to strokeA is now more logical
+    
+    Added a clearBuffer() function to the texture class
+        Pros:
+            Can clear the channels attribute (so it isn't full after a render() call)
+        What this means:
+            If a render() was called, it would store the result in the channels attribute for no good reason, now you can clear
+                it manually
+    
+    Strokes (should) have a man function and a _cache attribute
+        Pros:
+            man is for documeting what settings are needed and/or used by the stroke
+            _cache is for the stroke to keep data (useful during init, over iterations, etc.) AKA only the stroke should ever
+                see it, and you sure as hell should never change it
+        What this means:
+            It's easier to provide a description of how to supply settings
+            Strokes now have a standard way to store information
+    
+    Started documenting changes
+        Pros:
+            Now you know what's happening/changing
+        What this means:
+            It means I've started documenting the changes I make, idiot
+    
+v0.00-v0.0020:
+initial realease through no documented changes
